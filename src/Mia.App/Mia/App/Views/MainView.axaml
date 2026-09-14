@@ -1,0 +1,454 @@
+<!-- SPDX-License-Identifier: MIT -->
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:automation="using:Avalonia.Automation"
+    xmlns:local="using:Mia.App.Views"
+    xmlns:shared="using:Mia.App.Controls"
+    xmlns:vm="using:Mia.App.Presentation"
+    x:Class="Mia.App.Views.MainView"
+    x:DataType="vm:MainViewModel"
+    FontFamily="fonts:Inter#Inter"
+    Background="#111416"
+    Focusable="True">
+  <UserControl.Resources>
+    <SolidColorBrush x:Key="PanelBrush" Color="#181d20" />
+    <SolidColorBrush x:Key="PanelBorderBrush" Color="#30383d" />
+    <SolidColorBrush x:Key="TextBrush" Color="#f2f5f5" />
+    <SolidColorBrush x:Key="MutedBrush" Color="#9aa5aa" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#73d6ff" />
+    <SolidColorBrush x:Key="KeyBrush" Color="#20262a" />
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="Border.status-led">
+      <Setter Property="Width" Value="12" />
+      <Setter Property="Height" Value="12" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Background" Value="#171b1d" />
+      <Setter Property="BorderBrush" Value="#596267" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.bluetooth-led.active">
+      <Setter Property="Background" Value="#3b8cff" />
+    </Style>
+    <Style Selector="Border.network-led.active">
+      <Setter Property="Background" Value="#47e36f" />
+    </Style>
+    <Style Selector="shared|MiaPhoneFace">
+      <Setter Property="InputEnabled" Value="{Binding IsInputEnabled, Mode=OneWay}" />
+    </Style>
+    <Style Selector="Border.services-card">
+      <Setter Property="Width" Value="480" />
+      <Setter Property="MaxHeight" Value="Infinity" />
+      <Setter Property="Margin" Value="16" />
+      <Setter Property="Padding" Value="14" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="Background" Value="{StaticResource PanelBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource PanelBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Grid.services-layout">
+      <Setter Property="RowSpacing" Value="12" />
+    </Style>
+    <Style Selector="StackPanel.services-header">
+      <Setter Property="Spacing" Value="3" />
+    </Style>
+    <Style Selector="TabControl.service-tabs">
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="TabItem.service-tab">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="StackPanel.service-panel">
+      <Setter Property="Spacing" Value="9" />
+      <Setter Property="Margin" Value="0,10,0,0" />
+    </Style>
+    <Style Selector="TextBlock.service-title">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+    <Style Selector="TextBlock.service-description">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.service-result">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="Button.service-button">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+      <Setter Property="Background" Value="{StaticResource KeyBrush}" />
+      <Setter Property="Padding" Value="8,4" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.host-button">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+      <Setter Property="Background" Value="{StaticResource KeyBrush}" />
+      <Setter Property="Padding" Value="12,6" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.control-overlay-button, ToggleButton.control-overlay-button">
+      <Setter Property="Width" Value="46" />
+      <Setter Property="Height" Value="46" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Background" Value="{StaticResource PanelBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource PanelBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="23" />
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+      <Setter Property="FontSize" Value="22" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Focusable" Value="False" />
+    </Style>
+    <Style Selector="ToggleButton#ControlOverlayButton:checked PathIcon#ControlOverlayIcon">
+      <Setter Property="Data" Value="M4,2 L10,8 L16,2 L18,4 L12,10 L18,16 L16,18 L10,12 L4,18 L2,16 L8,10 L2,4 Z" />
+    </Style>
+    <Style Selector="Button.camera-button.connected PathIcon">
+      <Setter Property="Foreground" Value="#47e36f" />
+    </Style>
+
+    <Style Selector="local|MainView:compact Border.services-card">
+      <Setter Property="Width" Value="NaN" />
+      <Setter Property="Margin" Value="10" />
+      <Setter Property="Padding" Value="10" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="local|MainView:compact Grid.services-layout">
+      <Setter Property="RowSpacing" Value="8" />
+    </Style>
+    <Style Selector="local|MainView:compact StackPanel.services-header">
+      <Setter Property="Spacing" Value="2" />
+    </Style>
+    <Style Selector="local|MainView:compact TextBlock.services-subtitle">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="local|MainView:compact TabControl.service-tabs">
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="local|MainView:compact StackPanel.service-panel">
+      <Setter Property="Spacing" Value="6" />
+    </Style>
+    <Style Selector="local|MainView:compact TextBlock.desktop-detail">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="local|MainView:compact Grid.compact-spacing">
+      <Setter Property="ColumnSpacing" Value="4" />
+    </Style>
+    <Style Selector="local|MainView:compact TextBlock.service-result">
+      <Setter Property="FontSize" Value="10" />
+    </Style>
+    <Style Selector="local|MainView:compact Grid.host-controls">
+      <Setter Property="ColumnSpacing" Value="6" />
+    </Style>
+    <Style Selector="local|MainView:compact Button.host-button">
+      <Setter Property="Padding" Value="9,4" />
+    </Style>
+    <Style Selector="local|MainView:compact Button.control-overlay-button, local|MainView:compact ToggleButton.control-overlay-button">
+      <Setter Property="Width" Value="42" />
+      <Setter Property="Height" Value="42" />
+      <Setter Property="CornerRadius" Value="21" />
+    </Style>
+    <Style Selector="local|MainView:compact StackPanel.toolbar">
+      <Setter Property="Margin" Value="10" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid Background="#111416" ClipToBounds="True">
+    <Viewbox
+        Margin="8,4"
+        Stretch="Uniform"
+        StretchDirection="Both"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch">
+      <shared:MiaPhoneFace x:Name="PhoneFace" />
+    </Viewbox>
+
+    <Grid
+        Background="#dc090c0e"
+        IsVisible="{Binding IsControlOverlayOpen, Mode=OneWay}">
+      <Border Classes="services-card">
+        <ScrollViewer
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+          <Grid
+              Classes="services-layout"
+              RowDefinitions="Auto,*,Auto,Auto">
+            <StackPanel Classes="services-header">
+              <TextBlock
+                  Text="Mia · R8A015"
+                  FontSize="18"
+                  FontWeight="SemiBold"
+                  Foreground="{StaticResource TextBrush}" />
+              <TextBlock
+                  Text="{Binding Status}"
+                  FontSize="12"
+                  Foreground="{StaticResource TextBrush}"
+                  TextTrimming="CharacterEllipsis" />
+              <TextBlock
+                  Text="{Binding Details}"
+                  FontSize="10"
+                  Foreground="{StaticResource MutedBrush}"
+                  TextWrapping="Wrap" />
+              <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                <Border
+                    Classes="status-led bluetooth-led"
+                    Classes.active="{Binding IsBluetoothStatusActive}"
+                    ToolTip.Tip="Blue Bluetooth controller activity" />
+                <Border
+                    Grid.Column="1"
+                    Width="62"
+                    Height="5"
+                    CornerRadius="3"
+                    Background="#090b0c"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" />
+                <Border
+                    Grid.Column="2"
+                    Classes="status-led network-led"
+                    Classes.active="{Binding IsNetworkStatusActive}"
+                    ToolTip.Tip="Green registered-network service" />
+              </Grid>
+              <TextBlock
+                  Classes="services-subtitle"
+                  Text="Emulated services · no host radios or networks"
+                  FontSize="11"
+                  Foreground="{StaticResource AccentBrush}"
+                  TextWrapping="Wrap" />
+            </StackPanel>
+
+            <TabControl
+                Grid.Row="1"
+                Classes="service-tabs"
+                SelectedIndex="0">
+              <TabItem Classes="service-tab" Header="Bluetooth">
+                <StackPanel Classes="service-panel bluetooth-panel">
+                  <TextBlock
+                      Classes="service-title desktop-detail"
+                      Text="Deterministic remote peer" />
+                  <Grid ColumnDefinitions="Auto,74,Auto" ColumnSpacing="8">
+                    <CheckBox
+                        Content="Enable peer"
+                        Foreground="{StaticResource TextBrush}"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding Bluetooth.EmulatePeer}" />
+                    <TextBox
+                        Grid.Column="1"
+                        MaxLength="10"
+                        PlaceholderText="PIN"
+                        HorizontalAlignment="Stretch"
+                        Text="{Binding Bluetooth.Pin}"
+                        ToolTip.Tip="PIN expected by the emulated remote peer (1–10 digits)" />
+                    <Button
+                        Grid.Column="2"
+                        Classes="service-button"
+                        Content="Apply"
+                        Padding="10,4"
+                        Command="{Binding Bluetooth.ApplySettingsCommand}" />
+                  </Grid>
+                  <CheckBox
+                      Content="Return staged file after handset sends one"
+                      Foreground="{StaticResource TextBrush}"
+                      FontSize="11"
+                      IsChecked="{Binding Bluetooth.ReturnObject}" />
+                  <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+                    <Button
+                        Classes="service-button"
+                        Content="Stage file…"
+                        Command="{Binding Bluetooth.StageFileCommand}" />
+                    <Button
+                        Grid.Column="1"
+                        Classes="service-button"
+                        Content="Save received…"
+                        Command="{Binding Bluetooth.SaveFileCommand}" />
+                  </Grid>
+                  <TextBlock
+                      Classes="service-description desktop-detail"
+                      Text="Pair on the handset: Connect > Bluetooth > Discover devices > Mia Peer. Enter the same PIN there." />
+                  <TextBlock
+                      Classes="service-result"
+                      Text="{Binding Bluetooth.Result}" />
+                </StackPanel>
+              </TabItem>
+
+              <TabItem Classes="service-tab" Header="Infrared">
+                <StackPanel Classes="service-panel">
+                  <TextBlock
+                      Classes="service-title"
+                      Text="IrDA Object Exchange" />
+                  <TextBlock
+                      Classes="service-description"
+                      Text="Exchange real files through the handset's native IrLAP, IrLMP/IAS, TinyTP, and OBEX stack. Both send and receive preserve the object name, media type, and body." />
+                  <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+                    <Button
+                        Classes="service-button"
+                        Content="Send file…"
+                        Command="{Binding Infrared.StageFileCommand}" />
+                    <Button
+                        Grid.Column="1"
+                        Classes="service-button"
+                        Content="Save received…"
+                        IsEnabled="{Binding Infrared.CanSaveFile}"
+                        Command="{Binding Infrared.SaveFileCommand}" />
+                  </Grid>
+                  <TextBlock
+                      Classes="service-result"
+                      Text="{Binding Infrared.Result}" />
+                </StackPanel>
+              </TabItem>
+
+              <TabItem Classes="service-tab" Header="GSM">
+                <StackPanel Classes="service-panel gsm-panel">
+                  <TextBlock
+                      Classes="service-title"
+                      Text="Incoming network events" />
+                  <Grid
+                      Classes="compact-spacing"
+                      ColumnDefinitions="1.05*,1.35*,0.8*"
+                      ColumnSpacing="6">
+                    <TextBox
+                        PlaceholderText="Caller number"
+                        HorizontalAlignment="Stretch"
+                        IsEnabled="{Binding Gsm.IsEnabled}"
+                        Text="{Binding Gsm.IncomingNumber}" />
+                    <TextBox
+                        Grid.Column="1"
+                        PlaceholderText="SMS text"
+                        HorizontalAlignment="Stretch"
+                        IsEnabled="{Binding Gsm.IsEnabled}"
+                        Text="{Binding Gsm.IncomingSmsText}" />
+                    <TextBox
+                        Grid.Column="2"
+                        PlaceholderText="RSSI raw"
+                        HorizontalAlignment="Stretch"
+                        IsEnabled="{Binding Gsm.IsEnabled}"
+                        Text="{Binding Gsm.RssiRawSample}" />
+                  </Grid>
+                  <Grid
+                      Classes="compact-spacing"
+                      ColumnDefinitions="Auto,*,*,*"
+                      ColumnSpacing="6">
+                    <CheckBox
+                        Content="Auto-answer"
+                        Foreground="{StaticResource TextBrush}"
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        IsEnabled="{Binding Gsm.IsEnabled}"
+                        IsChecked="{Binding Gsm.AutoAnswer}" />
+                    <Button
+                        Grid.Column="1"
+                        Classes="service-button"
+                        Content="Call"
+                        IsEnabled="{Binding Gsm.IsEnabled}"
+                        Command="{Binding Gsm.QueueIncomingCallCommand}"
+                        ToolTip.Tip="Inject an incoming call" />
+                    <Button
+                        Grid.Column="2"
+                        Classes="service-button"
+                        Content="SMS"
+                        IsEnabled="{Binding Gsm.IsEnabled}"
+                        Command="{Binding Gsm.QueueIncomingSmsCommand}"
+                        ToolTip.Tip="Inject an incoming SMS" />
+                    <Button
+                        Grid.Column="3"
+                        Classes="service-button"
+                        Content="RSSI"
+                        IsEnabled="{Binding Gsm.IsEnabled}"
+                        Command="{Binding Gsm.SetRssiCommand}"
+                        ToolTip.Tip="Set the serving-carrier RSSI sample" />
+                  </Grid>
+                  <TextBlock
+                      Classes="service-result"
+                      Foreground="{StaticResource MutedBrush}"
+                      Text="{Binding Gsm.Result}" />
+                </StackPanel>
+              </TabItem>
+            </TabControl>
+
+            <Grid
+                Grid.Row="2"
+                Classes="host-controls"
+                ColumnDefinitions="*,*"
+                ColumnSpacing="8">
+              <Button
+                  Classes="host-button"
+                  Content="Boot / Restart"
+                  IsEnabled="{Binding IsBootEnabled}"
+                  Command="{Binding BootCommand}" />
+              <Button
+                  Grid.Column="1"
+                  Classes="host-button"
+                  Content="Stop"
+                  IsEnabled="{Binding IsStopEnabled}"
+                  Command="{Binding StopCommand}" />
+            </Grid>
+
+            <TextBox
+                Grid.Row="3"
+                Text="{Binding Diagnostics.Log, Mode=OneWay}"
+                IsVisible="{Binding Diagnostics.IsLogVisible}"
+                IsReadOnly="True"
+                AcceptsReturn="True"
+                TextWrapping="NoWrap"
+                FontFamily="Menlo, monospace"
+                FontSize="11"
+                Height="110"
+                PlaceholderText="Emulator diagnostics" />
+          </Grid>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+
+    <StackPanel
+        Classes="toolbar"
+        Orientation="Horizontal"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Top"
+        Spacing="8"
+        Margin="14">
+      <ToggleButton
+          x:Name="ControlOverlayButton"
+          Classes="control-overlay-button"
+          IsChecked="{Binding IsControlOverlayOpen, Mode=OneWay}"
+          Command="{Binding ToggleControlOverlayCommand}"
+          ToolTip.Tip="{Binding ControlOverlayToolTip}"
+          automation:AutomationProperties.Name="{Binding ControlOverlayToolTip}">
+        <PathIcon
+            x:Name="ControlOverlayIcon"
+            Width="20"
+            Height="20"
+            Foreground="{StaticResource TextBrush}"
+            Data="M3,4 L17,4 L17,6 L3,6 Z M3,9 L17,9 L17,11 L3,11 Z M3,14 L17,14 L17,16 L3,16 Z" />
+      </ToggleButton>
+      <Button
+          Classes="control-overlay-button camera-button"
+          Classes.connected="{Binding CommuniCam.IsConnected}"
+          IsVisible="{Binding CommuniCam.IsVisible}"
+          IsEnabled="{Binding CommuniCam.IsEnabled}"
+          Command="{Binding CommuniCam.ToggleCommand}"
+          ToolTip.Tip="{Binding CommuniCam.ToolTip}"
+          ToolTip.ShowOnDisabled="True"
+          automation:AutomationProperties.Name="{Binding CommuniCam.ToolTip}">
+        <PathIcon
+            Width="20"
+            Height="20"
+            Foreground="{StaticResource TextBrush}"
+            Data="M3,6 L6,6 L8,4 L12,4 L14,6 L17,6 L17,16 L3,16 Z M10,8 A3,3 0 1 0 10,14 A3,3 0 1 0 10,8 Z" />
+      </Button>
+    </StackPanel>
+  </Grid>
+</UserControl>

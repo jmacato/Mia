@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Mia WebAssembly emulator</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+    <div id="out">
+        <div class="splash" id="splash">
+            <div class="splash-content">
+                <div class="splash-title">Mia emulator</div>
+                <div class="splash-progress" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div class="splash-progress-fill"></div>
+                </div>
+                <div class="splash-status">Loading WebAssembly runtime</div>
+                <div id="audio-start" hidden>
+                    <button type="button" id="start-sound">Start with sound</button>
+                </div>
+                <a class="splash-help" id="tls-help" href="./mia-browser-cert.cer" hidden>
+                    Install the local certificate for iOS
+                </a>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="./main.js"></script>
+</body>
+</html>

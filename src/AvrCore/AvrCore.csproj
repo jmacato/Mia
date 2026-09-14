@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Optimize>true</Optimize>
+    <RootNamespace>AvrCore</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>AvrCore.Tests</_Parameter1>
+    </AssemblyAttribute>
+    <!-- Cpu's hot-path memory/hook arrays are internal rather than public
+         (see Cpu.cs) so they stay plain indexable fields instead of forcing
+         CA1819-driven copy/wrapper types onto a per-instruction access path.
+         The emulator engine and CLI use those arrays directly. -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Mia.Emulator</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Mia.Emulator.Cli</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

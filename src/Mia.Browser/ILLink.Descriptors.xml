@@ -1,0 +1,9 @@
+<linker>
+  <assembly fullname="System.Runtime.InteropServices.JavaScript">
+    <!-- The multithreaded browser runtime resolves this entry point by name
+         while installing the managed UI-worker synchronization context. -->
+    <type fullname="System.Runtime.InteropServices.JavaScript.JavaScriptExports">
+      <method name="InstallMainSynchronizationContext" />
+    </type>
+  </assembly>
+</linker>

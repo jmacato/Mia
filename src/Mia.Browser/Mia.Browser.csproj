@@ -1,0 +1,185 @@
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-browser</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Mia.Browser</AssemblyName>
+    <RootNamespace>Mia.Browser</RootNamespace>
+    <IsAotCompatible>true</IsAotCompatible>
+    <!-- The JSImport/JSExport interop source generator emits unsafe
+         marshalling stubs for every [JSImport]/[JSExport] partial method;
+         this is unconditional for any WASM project using that interop, not
+         a leftover flag. No literal `unsafe` keyword appears in tracked
+         source, and GeneratedCodeAnalysisFlags.None already excludes the
+         generated stubs from the repository policy analyzer's own unsafe-
+         code scan (see the analyzer's ConfigureGeneratedCodeAnalysis call). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <MiaBrowserThreads Condition="'$(MiaBrowserThreads)' == '' and '$(Configuration)' == 'Release'">true</MiaBrowserThreads>
+    <MiaBrowserThreads Condition="'$(MiaBrowserThreads)' == ''">false</MiaBrowserThreads>
+    <DefineConstants>$(DefineConstants);BROWSER</DefineConstants>
+    <DefineConstants Condition="'$(MiaBrowserThreads)' == 'true'">$(DefineConstants);BROWSER_THREADS</DefineConstants>
+    <WasmEnableThreads>$(MiaBrowserThreads)</WasmEnableThreads>
+    <!-- The emulator owns the runtime's sole bounded ThreadPool worker for its
+         lifetime. Avalonia dispatches on its managed UI pthread, so sizing the
+         pool from the host CPU would only create unused browser workers. -->
+    <ThreadPoolMinThreads Condition="'$(Configuration)' == 'Release'">1</ThreadPoolMinThreads>
+    <ThreadPoolMaxThreads Condition="'$(Configuration)' == 'Release'">1</ThreadPoolMaxThreads>
+    <WasmEnableSIMD Condition="'$(Configuration)' == 'Release'">true</WasmEnableSIMD>
+    <WasmEnableHotReload>false</WasmEnableHotReload>
+    <WasmBuildNative>true</WasmBuildNative>
+    <EmccStackSize>1MB</EmccStackSize>
+    <WasmInitialHeapSize Condition="'$(Configuration)' == 'Release'">109051904</WasmInitialHeapSize>
+    <EmccMaximumHeapSize Condition="'$(Configuration)' == 'Release'">134217728</EmccMaximumHeapSize>
+    <EmccExtraLDFlags Condition="'$(Configuration)' == 'Release'">$(EmccExtraLDFlags) -sUSE_WEBGL2=1 -sDEFAULT_TO_CXX=1 -sTEXTDECODER=1 -sMEMORY_GROWTH_GEOMETRIC_STEP=0 -sMEMORY_GROWTH_LINEAR_STEP=4194304</EmccExtraLDFlags>
+    <InvariantTimezone>true</InvariantTimezone>
+    <CompressionEnabled>false</CompressionEnabled>
+    <EmccCompileOptimizationFlag Condition="'$(Configuration)' == 'Debug'">-O2</EmccCompileOptimizationFlag>
+    <EmccLinkOptimizationFlag Condition="'$(Configuration)' == 'Debug'">-O2</EmccLinkOptimizationFlag>
+    <!-- Compile the browser application and emulation cores ahead of time,
+         retaining interpreter fallback for framework code. -->
+    <MiaBrowserFullAot Condition="'$(MiaBrowserFullAot)' == ''">false</MiaBrowserFullAot>
+    <MiaBrowserHybridAot Condition="'$(MiaBrowserHybridAot)' == '' and '$(Configuration)' == 'Release'">true</MiaBrowserHybridAot>
+    <MiaBrowserHybridAot Condition="'$(MiaBrowserHybridAot)' == ''">false</MiaBrowserHybridAot>
+    <RunAOTCompilation Condition="'$(RunAOTCompilation)' == '' and ('$(MiaBrowserFullAot)' == 'true' or '$(MiaBrowserHybridAot)' == 'true')">true</RunAOTCompilation>
+    <RunAOTCompilation Condition="'$(RunAOTCompilation)' == ''">false</RunAOTCompilation>
+    <MiaFirmwarePath Condition="'$(MiaFirmwarePath)' == ''">$(MSBuildProjectDirectory)/../../flat.bin</MiaFirmwarePath>
+    <MiaGdfsPath Condition="'$(MiaGdfsPath)' == ''">$(MSBuildProjectDirectory)/../../images/T68i_Default_GDFS.raw</MiaGdfsPath>
+    <MiaModemPath Condition="'$(MiaModemPath)' == ''">$(MSBuildProjectDirectory)/../../images/t68i_R8A015_125326_Modem.bih</MiaModemPath>
+    <MiaBundleBrowserInputs Condition="'$(MiaBundleBrowserInputs)' == '' and Exists('$(MiaFirmwarePath)') and Exists('$(MiaGdfsPath)') and Exists('$(MiaModemPath)')">true</MiaBundleBrowserInputs>
+    <MiaBundleBrowserInputs Condition="'$(MiaBundleBrowserInputs)' == ''">false</MiaBundleBrowserInputs>
+    <_WebAssemblyUserRunParameters>true</_WebAssemblyUserRunParameters>
+    <RunCommand>$(MSBuildProjectDirectory)/../../tools/run-browser</RunCommand>
+    <RunArguments>--serve &quot;$(Configuration)&quot; &quot;$(TargetFramework)&quot;</RunArguments>
+    <RunWorkingDirectory>$(MSBuildProjectDirectory)/../..</RunWorkingDirectory>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>full</TrimMode>
+    <AOTMode Condition="'$(RunAOTCompilation)' == 'true' and '$(MiaBrowserFullAot)' == 'true'">LLVMOnly</AOTMode>
+    <AOTMode Condition="'$(RunAOTCompilation)' == 'true' and '$(MiaBrowserFullAot)' != 'true'">LLVMOnlyInterp</AOTMode>
+    <WasmDedup Condition="'$(RunAOTCompilation)' == 'true'">false</WasmDedup>
+    <WasmStripILAfterAOT Condition="'$(RunAOTCompilation)' == 'true'">true</WasmStripILAfterAOT>
+    <WasmNativeDebugSymbols>false</WasmNativeDebugSymbols>
+    <WasmNativeStrip>true</WasmNativeStrip>
+    <WasmEmitSymbolMap>false</WasmEmitSymbolMap>
+    <WasmEmitSourceMap>false</WasmEmitSourceMap>
+    <WasmRunWasmOpt>true</WasmRunWasmOpt>
+    <EmccCompileOptimizationFlag>-O3</EmccCompileOptimizationFlag>
+    <WasmBitcodeCompileOptimizationFlag>-O3</WasmBitcodeCompileOptimizationFlag>
+    <EmccLinkOptimizationFlag>-O3</EmccLinkOptimizationFlag>
+    <EnableDiagnostics>false</EnableDiagnostics>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Collect managed allocations early enough to leave room for the native
+         runtime and rendering within the 128 MiB linear-memory limit. -->
+    <WasmEnvironmentVariable Include="MONO_GC_PARAMS"
+                             Value="soft-heap-limit=24m,max-heap-size=48m,nursery-size=512k" />
+    <!-- The browser head and emulation core dispatch firmware handlers through
+         static delegate tables. A full-AOT build cannot rely on an interpreter
+         fallback for handlers the linker cannot statically follow. -->
+    <TrimmerRootAssembly Include="$(AssemblyName)"
+                         Condition="'$(MiaBrowserFullAot)' == 'true'" />
+    <TrimmerRootAssembly Include="Mia.Emulator"
+                         Condition="'$(MiaBrowserFullAot)' == 'true'" />
+    <WasmOptConfigurationFlags Include="-O3" />
+    <WasmOptConfigurationFlags Include="--merge-similar-functions" />
+    <WasmOptConfigurationFlags Include="--duplicate-function-elimination" />
+    <WasmOptConfigurationFlags Include="--enable-nontrapping-float-to-int" />
+  </ItemGroup>
+
+  <!-- Mono's cache also lacks the AOT mode in its key. Never reuse a hybrid
+       object file when switching to LLVM-only full AOT. -->
+  <Target Name="InvalidateMiaBrowserAotCacheForFullAot"
+          BeforeTargets="_WasmAotCompileApp"
+          Condition="'$(MiaBrowserFullAot)' == 'true'">
+    <Delete Files="$(_WasmIntermediateOutputPath)aot_compiler_cache.json" />
+  </Target>
+
+  <Target Name="SelectMiaBrowserHybridAotAssemblies"
+          BeforeTargets="_WasmAotCompileApp"
+          Condition="'$(RunAOTCompilation)' == 'true' and '$(MiaBrowserFullAot)' != 'true'">
+    <ItemGroup>
+      <_AOT_InternalForceInterpretAssemblies Include="@(_WasmAssembliesInternal)" />
+      <_AOT_InternalForceInterpretAssemblies Remove="**/Mia.Browser.dll" />
+      <_AOT_InternalForceInterpretAssemblies Remove="**/Mia.App.dll" />
+      <_AOT_InternalForceInterpretAssemblies Remove="**/Mia.Emulator.dll" />
+      <_AOT_InternalForceInterpretAssemblies Remove="**/AvrCore.dll" />
+      <_AOT_InternalForceInterpretAssemblies Remove="**/Arm7Core.dll" />
+      <_AOT_InternalForceInterpretAssemblies Remove="**/Avalonia*.dll" />
+      <_AOT_InternalForceInterpretAssemblies Remove="**/System.Threading.Channels.dll" />
+      <_AOT_InternalForceInterpretAssemblies Remove="**/System.Runtime.InteropServices.JavaScript.dll" />
+      <_AOT_InternalForceInterpretAssemblies Remove="**/System.Private.CoreLib.dll" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Browser" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+    <TrimmerRootDescriptor Include="ILLink.Descriptors.xml"
+                           Condition="'$(WasmEnableThreads)' == 'true'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Mia.App/Mia.App.csproj" />
+    <ProjectReference Include="../Mia.Emulator/Mia.Emulator.csproj"
+                      AdditionalProperties="MiaBrowserThreads=$(MiaBrowserThreads)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot/firmware/**" />
+    <Content Include="wwwroot/firmware/flat.bin"
+             Condition="'$(MiaBundleBrowserInputs)' == 'true'"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="wwwroot/firmware/gdfs.raw"
+             Condition="'$(MiaBundleBrowserInputs)' == 'true'"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="wwwroot/firmware/modem.bih"
+             Condition="'$(MiaBundleBrowserInputs)' == 'true'"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <Target Name="StageMiaBrowserInputs"
+          BeforeTargets="ResolveProjectStaticWebAssets"
+          Condition="'$(MiaBundleBrowserInputs)' == 'true'">
+    <Error Condition="!Exists('$(MiaFirmwarePath)')"
+           Text="Mia firmware not found: $(MiaFirmwarePath)" />
+    <Error Condition="!Exists('$(MiaGdfsPath)')"
+           Text="Mia GDFS not found: $(MiaGdfsPath)" />
+    <Error Condition="!Exists('$(MiaModemPath)')"
+           Text="Mia modem BIH not found: $(MiaModemPath)" />
+    <MakeDir Directories="$(MSBuildProjectDirectory)/wwwroot/firmware" />
+    <Copy SourceFiles="$(MiaFirmwarePath);$(MiaGdfsPath);$(MiaModemPath)"
+          DestinationFiles="$(MSBuildProjectDirectory)/wwwroot/firmware/flat.bin;$(MSBuildProjectDirectory)/wwwroot/firmware/gdfs.raw;$(MSBuildProjectDirectory)/wwwroot/firmware/modem.bih"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <!-- The SDK host resolves project and package assets through its
+       static-web-assets manifest. Our HTTPS host serves a physical directory,
+       so materialize both groups before Run; otherwise an incremental Debug
+       launch can retain an obsolete project bootstrap in bin/wwwroot. -->
+  <Target Name="StageMiaBrowserRunAssets"
+          AfterTargets="Build"
+          DependsOnTargets="ResolveBuildStaticWebAssets">
+    <ItemGroup>
+      <_MiaBrowserProjectAsset Include="$(MSBuildProjectDirectory)/wwwroot/**/*" />
+      <_MiaBrowserPackageAsset Include="@(StaticWebAsset)"
+                                Condition="'%(SourceType)' == 'Package' and '%(AssetRole)' == 'Primary'" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_MiaBrowserProjectAsset)"
+          DestinationFiles="@(_MiaBrowserProjectAsset->'$(OutputPath)wwwroot/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_MiaBrowserPackageAsset)"
+          DestinationFiles="@(_MiaBrowserPackageAsset->'$(OutputPath)wwwroot/%(RelativePath)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

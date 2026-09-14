@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <!-- Microsoft.Common targets seed CS1701/CS1702 suppressions after props are
+         evaluated. Clear those defaults here so the effective build has none. -->
+    <NoWarn></NoWarn>
+    <!-- Thread.UnsafeStart is marked unsupported for all browser targets by the
+         BCL, but it is supported by the threaded Wasm runtime. This is the
+         one policy-approved warning exception, applied after the SDK defaults
+         so the browser head and its referenced engine target stay buildable. -->
+    <NoWarn Condition="('$(MSBuildProjectName)' == 'Mia.Browser' or ('$(MSBuildProjectName)' == 'Mia.Emulator' and '$(TargetFramework)' == 'net10.0-browser')) and '$(MiaBrowserThreads)' == 'true'">CA1416</NoWarn>
+    <MSBuildWarningsAsMessages></MSBuildWarningsAsMessages>
+  </PropertyGroup>
+</Project>

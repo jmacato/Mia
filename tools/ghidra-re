@@ -1,0 +1,221 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_PATH="$ROOT/tools/ghidra"
+FIRMWARE="${MIA_GHIDRA_FIRMWARE:-$ROOT/flat.bin}"
+PROJECT="${MIA_GHIDRA_PROJECT:-/private/tmp/mia-ghidra}"
+PROJECT_LOCATION="$(dirname "$PROJECT")"
+PROJECT_NAME="$(basename "$PROJECT")"
+PROGRAM="${MIA_GHIDRA_PROGRAM:-$(basename "$FIRMWARE")}"
+LANGUAGE="${MIA_GHIDRA_LANGUAGE:-avr8:LE:16:extended}"
+BASE_ADDRESS="${MIA_GHIDRA_BASE:-}"
+
+if [[ -z "${GHIDRA_HOME:-}" ]]; then
+    if command -v brew >/dev/null 2>&1; then
+        GHIDRA_HOME="$(brew --prefix ghidra)/libexec"
+    else
+        GHIDRA_HOME="/opt/homebrew/opt/ghidra/libexec"
+    fi
+fi
+
+ANALYZE_HEADLESS="${GHIDRA_ANALYZE_HEADLESS:-$GHIDRA_HOME/support/analyzeHeadless}"
+
+if [[ -z "${JAVA_HOME:-}" && -d /opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home ]]; then
+    export JAVA_HOME=/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home
+fi
+
+usage() {
+    cat <<'EOF'
+Usage: tools/ghidra-re COMMAND [ARG...]
+
+Common queries (addresses are hexadecimal offsets in the program's default address space):
+  fn ADDRESS...          disassemble and decompile functions at exact entries
+  at ADDRESS...          disassemble and decompile containing functions
+  dec ADDRESS...         decompile functions at exact entries
+  dec-at ADDRESS...      decompile containing functions
+  asm ADDRESS...         list functions at exact entries
+  asm-at ADDRESS...      list containing functions
+  refs ADDRESS...        show references to code or explicitly named address spaces
+  callers ADDRESS...     show callers of functions
+  call-sites ADDRESS...  show each call with nearby instructions
+  callees ADDRESS...     show callees of functions
+  range START END        list instructions in a half-open code range
+  linear-range START END disassemble gaps linearly, then list the half-open range
+  search-instructions REGEX [START END]
+                         search analyzed instructions, optionally in a range
+  info                   show the analyzed program identity and memory map
+  repair-fn START END    clear a misanalyzed range and rebuild its function
+  repair-thumb-fn START END
+                         clear a mixed-code range and rebuild it as ARM Thumb
+
+Project commands:
+  init                   import and analyze flat.bin if the project is absent
+  analyze                rerun Ghidra analysis on the existing project
+  script NAME [ARG...]   run an arbitrary repository-local Ghidra script
+
+Use an address-space prefix for data, for example `refs mem:2a9a0`. Override
+defaults with MIA_GHIDRA_FIRMWARE, MIA_GHIDRA_PROJECT,
+MIA_GHIDRA_PROGRAM, MIA_GHIDRA_LANGUAGE, MIA_GHIDRA_BASE, or
+GHIDRA_HOME. MIA_GHIDRA_BASE sets the BinaryLoader base address at import.
+EOF
+}
+
+require_host_tools() {
+    if [[ ! -x "$ANALYZE_HEADLESS" ]]; then
+        echo "Ghidra headless analyzer not found: $ANALYZE_HEADLESS" >&2
+        exit 1
+    fi
+    if [[ ! -f "$FIRMWARE" ]]; then
+        echo "Firmware image not found: $FIRMWARE" >&2
+        exit 1
+    fi
+}
+
+project_exists() {
+    [[ -f "$PROJECT_LOCATION/$PROJECT_NAME.gpr" ]]
+}
+
+run_headless() {
+    local combined_log script_log app_log filtered_log status
+    combined_log="$(mktemp -t mia-ghidra-output.XXXXXX)"
+    script_log="$(mktemp -t mia-ghidra-script.XXXXXX)"
+    app_log="$(mktemp -t mia-ghidra-app.XXXXXX)"
+    filtered_log="$(mktemp -t mia-ghidra-filtered.XXXXXX)"
+    status=0
+
+    "$ANALYZE_HEADLESS" "$@" -scriptlog "$script_log" -log "$app_log" \
+        >"$combined_log" 2>&1 || status=$?
+
+    if [[ $status -eq 0 ]] && grep -Eq 'ERROR REPORT|SCRIPT ERROR|^[^[:space:]].*\.java:[0-9]+: error:' "$combined_log"; then
+        status=1
+    fi
+
+    awk '
+        /^[A-Z]+  [^ >]+\.java> / {
+            line = $0
+            sub(/^[A-Z]+  [^ >]+\.java> /, "", line)
+            if (sub(/ \(GhidraScript\)  $/, "", line)) {
+                print line
+                multiline = 0
+            } else {
+                print line
+                multiline = 1
+            }
+            next
+        }
+        multiline {
+            line = $0
+            if (sub(/ \(GhidraScript\)  $/, "", line)) {
+                print line
+                multiline = 0
+            } else {
+                print line
+            }
+        }
+    ' "$combined_log" >"$filtered_log"
+
+    if [[ $status -ne 0 ]]; then
+        cat "$combined_log" >&2
+    elif [[ -s "$filtered_log" ]]; then
+        cat "$filtered_log"
+    elif [[ -s "$script_log" ]]; then
+        cat "$script_log"
+    else
+        tail -n 40 "$combined_log"
+    fi
+
+    rm -f "$combined_log" "$script_log" "$app_log" "$filtered_log"
+    return "$status"
+}
+
+init_project() {
+    local -a import_args
+    require_host_tools
+    if project_exists; then
+        return
+    fi
+    mkdir -p "$PROJECT_LOCATION"
+    echo "Creating Ghidra project $PROJECT from $FIRMWARE" >&2
+    import_args=(-import "$FIRMWARE" -loader BinaryLoader -processor "$LANGUAGE")
+    if [[ -n "$BASE_ADDRESS" ]]; then
+        import_args+=(-loader-baseAddr "$BASE_ADDRESS")
+    fi
+    run_headless "$PROJECT_LOCATION" "$PROJECT_NAME" "${import_args[@]}"
+}
+
+query() {
+    local mode="$1"
+    shift
+    init_project
+    run_headless "$PROJECT_LOCATION" "$PROJECT_NAME" \
+        -process "$PROGRAM" -noanalysis -scriptPath "$SCRIPT_PATH" \
+        -postScript MiaQuery.java "$mode" "$@"
+}
+
+command="${1:-help}"
+if [[ $# -gt 0 ]]; then
+    shift
+fi
+
+case "$command" in
+    help|-h|--help)
+        usage
+        ;;
+    init)
+        init_project
+        echo "Ghidra project ready: $PROJECT"
+        ;;
+    analyze)
+        init_project
+        run_headless "$PROJECT_LOCATION" "$PROJECT_NAME" -process "$PROGRAM"
+        ;;
+    fn|function)
+        query function "$@"
+        ;;
+    at|containing)
+        query containing "$@"
+        ;;
+    dec|decompile)
+        query decompile "$@"
+        ;;
+    dec-at|decompile-containing)
+        query decompile-containing "$@"
+        ;;
+    asm|listing)
+        query listing "$@"
+        ;;
+    asm-at|listing-containing)
+        query listing-containing "$@"
+        ;;
+    refs|xrefs)
+        query refs "$@"
+        ;;
+    callers|call-sites|callees|range|linear-range|search-instructions|info)
+        query "$command" "$@"
+        ;;
+    repair-fn|repair-function)
+        query repair-function "$@"
+        ;;
+    repair-thumb-fn|repair-thumb-function)
+        query repair-thumb-function "$@"
+        ;;
+    script)
+        if [[ $# -lt 1 ]]; then
+            echo "script requires a repository-local script name" >&2
+            exit 2
+        fi
+        init_project
+        script_name="$1"
+        shift
+        run_headless "$PROJECT_LOCATION" "$PROJECT_NAME" \
+            -process "$PROGRAM" -noanalysis -scriptPath "$SCRIPT_PATH" \
+            -postScript "$script_name" "$@"
+        ;;
+    *)
+        echo "Unknown command: $command" >&2
+        usage >&2
+        exit 2
+        ;;
+esac

@@ -1,0 +1,9 @@
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Mia.Desktop": {
+      "commandName": "Project",
+      "commandLineArgs": "--automation-port 0"
+    }
+  }
+}

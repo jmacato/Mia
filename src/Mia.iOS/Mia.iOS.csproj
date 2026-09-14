@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <Description>Workload-free compile boundary for a future Mia iOS head. iOS launch support is not implemented.</Description>
+    <MiaHeadStatus>Unsupported</MiaHeadStatus>
+    <MiaLaunchSupported>false</MiaLaunchSupported>
+    <MiaFuturePlatform>iOS</MiaFuturePlatform>
+    <MiaFutureHeadBoundary>Thin platform host for the shared Mia.App application</MiaFutureHeadBoundary>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="Mia.Head.Status" Value="$(MiaHeadStatus)" />
+    <AssemblyMetadata Include="Mia.Head.LaunchSupported" Value="$(MiaLaunchSupported)" />
+    <AssemblyMetadata Include="Mia.Head.FuturePlatform" Value="$(MiaFuturePlatform)" />
+    <AssemblyMetadata Include="Mia.Head.FutureBoundary" Value="$(MiaFutureHeadBoundary)" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,83 @@
+<!-- SPDX-License-Identifier: MIT -->
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Mia.App.Controls"
+    xmlns:svg="using:Avalonia.Svg.Skia"
+    x:Class="Mia.App.Controls.MiaPhoneFace"
+    x:DataType="local:MiaPhoneFace"
+    Width="470"
+    Height="958"
+    MinWidth="0"
+    MinHeight="0"
+    Focusable="False">
+  <Canvas
+      x:Name="PhoneCanvas"
+      Width="470"
+      Height="958"
+      Background="Transparent">
+    <svg:Svg
+        Path="/Assets/mia.svg"
+        Width="470"
+        Height="958"
+        Stretch="Fill"
+        IsHitTestVisible="False" />
+    <Canvas
+        x:Name="DisplayLayer"
+        Width="470"
+        Height="958"
+        ClipToBounds="True"
+        IsHitTestVisible="False">
+      <local:LcdControl x:Name="LcdDisplay" />
+    </Canvas>
+    <svg:Svg
+        x:Name="KeypadBacklight"
+        Path="/Assets/mia.svg"
+        Width="470"
+        Height="958"
+        Stretch="Fill"
+        Opacity="0"
+        IsHitTestVisible="False">
+      <svg:Svg.Css><![CDATA[
+#mia-shell > * { opacity: 0; }
+#key-legends {
+  opacity: 1;
+  fill: #0077ff;
+}
+#call-legend {
+  opacity: 1;
+  fill: #006cff;
+}
+#end-legend {
+  opacity: 1;
+  fill: #ff003c;
+}
+      ]]></svg:Svg.Css>
+    </svg:Svg>
+    <local:MiaPhoneKeyControl Key="Yes" />
+    <local:MiaPhoneKeyControl Key="NoPower" />
+    <local:MiaPhoneKeyControl Key="Options" />
+    <local:MiaPhoneKeyControl Key="Clear" />
+    <local:MiaPhoneKeyControl Key="Digit1" />
+    <local:MiaPhoneKeyControl Key="Digit2" />
+    <local:MiaPhoneKeyControl Key="Digit3" />
+    <local:MiaPhoneKeyControl Key="Digit4" />
+    <local:MiaPhoneKeyControl Key="Digit5" />
+    <local:MiaPhoneKeyControl Key="Digit6" />
+    <local:MiaPhoneKeyControl Key="Digit7" />
+    <local:MiaPhoneKeyControl Key="Digit8" />
+    <local:MiaPhoneKeyControl Key="Digit9" />
+    <local:MiaPhoneKeyControl Key="Star" />
+    <local:MiaPhoneKeyControl Key="Digit0" />
+    <local:MiaPhoneKeyControl Key="Hash" />
+    <local:MiaPhoneKeyControl Key="Up" />
+    <local:MiaPhoneKeyControl Key="Right" />
+    <local:MiaPhoneKeyControl Key="Down" />
+    <local:MiaPhoneKeyControl Key="Left" />
+    <local:MiaPhoneKeyControl Key="Joystick" />
+    <local:MiaPhoneKeyControl Key="VolumeUp" />
+    <local:MiaPhoneKeyControl Key="VolumeDown" />
+    <local:MiaPhoneLedControl x:Name="LeftLed" Side="Left" />
+    <local:MiaPhoneLedControl x:Name="RightLed" Side="Right" />
+  </Canvas>
+</UserControl>

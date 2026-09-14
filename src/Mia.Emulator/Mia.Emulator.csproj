@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0-browser</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Optimize>true</Optimize>
+    <RootNamespace>Mia.Emulator</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browser'">
+    <DefineConstants>$(DefineConstants);BROWSER</DefineConstants>
+    <DefineConstants Condition="'$(MiaBrowserThreads)' == 'true'">$(DefineConstants);BROWSER_THREADS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Arm7Core/Arm7Core.csproj" />
+    <ProjectReference Include="../AvrCore/AvrCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browser'">
+    <Compile Remove="Mia/Emulator/Asic/AsicSingleChannelRfSource.cs" />
+    <Compile Remove="Mia/Emulator/Audio/PcmWaveFileWriter.cs" />
+    <Compile Remove="Mia/Emulator/Diagnostics/AccessTrace*.cs" />
+    <Compile Remove="Mia/Emulator/Diagnostics/LoopRotationScores.cs" />
+    <Compile Remove="Mia/Emulator/Diagnostics/PrimaryI2cTraceDecoder.cs" />
+    <Compile Remove="Mia/Emulator/Display/LiveFramebufferFile.cs" />
+    <Compile Remove="Mia/Emulator/Runtime/DelegateExecutionObserver.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>AvrCore.Tests</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Mia.App.Tests</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Mia.Emulator.Cli</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Mia.Desktop</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Mia.Browser</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

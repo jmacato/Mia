@@ -1,0 +1,136 @@
+#!/bin/zsh
+set -euo pipefail
+
+repo_root=${0:A:h:h}
+project="$repo_root/src/Mia.Browser/Mia.Browser.csproj"
+bind=${MiaBrowserBind:-0.0.0.0}
+port=${MiaBrowserPort:-3477}
+custom_cert=${MiaBrowserCert:-}
+custom_key=${MiaBrowserKey:-}
+tls_directory=${MiaBrowserTlsDirectory:-$HOME/.config/mia/browser-tls}
+full_aot=${MiaBrowserFullAot:-false}
+
+if [[ ${1:-} != --serve ]]; then
+    configuration=Release
+    no_build=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -c|--configuration)
+                if [[ $# -lt 2 ]]; then
+                    print -u2 "Missing value for $1"
+                    exit 2
+                fi
+                configuration=$2
+                shift 2
+                ;;
+            --no-build|--no-publish)
+                no_build=(--no-build)
+                shift
+                ;;
+            --full-aot)
+                full_aot=true
+                shift
+                ;;
+            *)
+                print -u2 \
+                    "usage: tools/run-browser [-c Debug|Release] [--full-aot] [--no-build]"
+                exit 2
+                ;;
+        esac
+    done
+
+    export MiaBrowserFullAot="$full_aot"
+    exec dotnet run \
+        --project "$project" \
+        --configuration "$configuration" \
+        -p:MiaBrowserFullAot="$full_aot" \
+        -p:SuppressTrimAnalysisWarnings=true \
+        "${no_build[@]}"
+fi
+
+if [[ $# -ne 3 ]]; then
+    print -u2 "tools/run-browser: invalid internal --serve invocation"
+    exit 2
+fi
+
+configuration=$2
+target_framework=$3
+if [[ "$configuration" == Release ]]; then
+    if [[ -n ${MiaBrowserOutput:-} ]]; then
+        publish_root=$MiaBrowserOutput
+    else
+        deployment_root="$repo_root/src/Mia.Browser/bin/$configuration/$target_framework/deployments"
+        mkdir -p "$deployment_root"
+        publish_root=$(mktemp -d "$deployment_root/release.XXXXXX")
+    fi
+    dotnet publish \
+        "$project" \
+        --configuration "$configuration" \
+        --no-build \
+        --nologo \
+        -p:BuildProjectReferences=false \
+        -p:MiaBrowserFullAot="$full_aot" \
+        -p:SuppressTrimAnalysisWarnings=true \
+        -o "$publish_root"
+    output="$publish_root/wwwroot"
+else
+    output="$repo_root/src/Mia.Browser/bin/$configuration/$target_framework/wwwroot"
+fi
+if [[ ! -f "$output/index.html" || ! -d "$output/_framework" ]]; then
+    print -u2 "Browser $configuration build output not found: $output"
+    exit 1
+fi
+
+if [[ -n "$custom_cert" || -n "$custom_key" ]]; then
+    if [[ -z "$custom_cert" || -z "$custom_key" || \
+          ! -f "$custom_cert" || ! -f "$custom_key" ]]; then
+        print -u2 "MiaBrowserCert and MiaBrowserKey must name existing files"
+        exit 2
+    fi
+    cert=$custom_cert
+    key=$custom_key
+else
+    cert=$tls_directory/mia-browser-cert.pem
+    key=$tls_directory/mia-browser-key.pem
+    certificate_valid=false
+    if [[ -f "$cert" && -f "$key" ]] && \
+        openssl x509 -checkend 86400 -noout -in "$cert" >/dev/null 2>&1; then
+        certificate_valid=true
+    fi
+    if [[ "$certificate_valid" != true ]]; then
+        mkdir -p "$tls_directory"
+        subject_alt_names="DNS:localhost,IP:127.0.0.1"
+        if command -v ifconfig >/dev/null; then
+            addresses=(${(f)"$(ifconfig | sed -n 's/.*inet \([0-9][0-9.]*\).*/\1/p')"})
+            for address in "${addresses[@]}"; do
+                if [[ "$address" != "127.0.0.1" ]]; then
+                    subject_alt_names+=",IP:$address"
+                fi
+            done
+        fi
+        umask 077
+        openssl req -x509 -newkey rsa:2048 -sha256 -nodes -days 365 \
+            -keyout "$key" \
+            -out "$cert" \
+            -subj "/CN=Mia local browser host" \
+            -addext "subjectAltName=$subject_alt_names" \
+            >/dev/null 2>&1
+    fi
+fi
+
+openssl x509 -in "$cert" -outform der \
+    -out "$output/mia-browser-cert.cer"
+
+build_description=$configuration
+if [[ "$configuration" == Release && "$full_aot" == true ]]; then
+    build_description="Release + full AOT"
+fi
+print "Serving the $build_description WebAssembly emulator"
+print "Open https://localhost:$port/ or a certificate-listed host address"
+
+exec python3 "$repo_root/tools/serve_browser.py" \
+    --bind "$bind" \
+    --port "$port" \
+    --directory "$output" \
+    --cert "$cert" \
+    --key "$key"

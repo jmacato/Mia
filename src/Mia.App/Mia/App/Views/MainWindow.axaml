@@ -1,0 +1,16 @@
+<!-- SPDX-License-Identifier: MIT -->
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:views="using:Mia.App.Views"
+    xmlns:vm="using:Mia.App.Presentation"
+    x:Class="Mia.App.Views.MainWindow"
+    x:DataType="vm:MainViewModel"
+    Classes="mia-main-window"
+    Title="Mia live emulator"
+    Width="480"
+    Height="900"
+    MinWidth="320"
+    MinHeight="568">
+  <views:MainView x:Name="ContentView" DataContext="{Binding}" />
+</Window>

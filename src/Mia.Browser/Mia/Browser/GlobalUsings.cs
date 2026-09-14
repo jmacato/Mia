@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: MIT
+
+global using Mia.App.Presentation;
+global using Mia.Browser.Audio;
+global using Mia.Browser.Hosting;
+global using Mia.Browser.Interop;
+global using Mia.Browser.Persistence;
+global using Mia.Browser.Presentation;
+global using Mia.Browser.Runtime;
+global using Mia.Emulator.Asic;
+global using Mia.Emulator.Bluetooth;
+global using Mia.Emulator.Gsm;
+global using Mia.Emulator.Input;
+global using Mia.Emulator.Machine;
+global using Mia.Emulator.Modem.Bluetooth;
+global using Mia.Emulator.Modem.Infrared;
+global using Mia.Emulator.Persistence;
+global using Mia.Emulator.Runtime;
+global using Mia.Emulator.Status;

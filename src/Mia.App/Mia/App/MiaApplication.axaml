@@ -1,0 +1,11 @@
+<!-- SPDX-License-Identifier: MIT -->
+<Application
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:fluent="using:Avalonia.Themes.Fluent"
+    x:Class="Mia.App.MiaApplication">
+  <Application.Styles>
+    <fluent:FluentTheme />
+    <StyleInclude Source="avares://Mia.App/Mia/App/Styles/MiaStyles.axaml" />
+  </Application.Styles>
+</Application>

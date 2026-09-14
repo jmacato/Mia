@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: MIT
+
+namespace Mia.Emulator.Modem.Bluetooth;
+
+internal enum ArmModemBluetoothPeripheralEmulatedPairingPhase
+{
+    None,
+    KickDriver,
+    Result,
+    AwaitNativeAction,
+    ControllerExchange,
+}

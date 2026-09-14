@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Arm7Core/Arm7Core.csproj" />
+    <Project Path="src/AvrCore/AvrCore.csproj" />
+    <Project Path="src/Mia.Android/Mia.Android.csproj" />
+    <Project Path="src/Mia.App/Mia.App.csproj" />
+    <Project Path="src/Mia.Browser/Mia.Browser.csproj" />
+    <Project Path="src/Mia.Desktop/Mia.Desktop.csproj" />
+    <Project Path="src/Mia.Emulator.Cli/Mia.Emulator.Cli.csproj" />
+    <Project Path="src/Mia.Emulator/Mia.Emulator.csproj" />
+    <Project Path="src/Mia.iOS/Mia.iOS.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Arm7Core.Tests/Arm7Core.Tests.csproj" />
+    <Project Path="tests/AvrCore.Tests/AvrCore.Tests.csproj" />
+    <Project Path="tests/Mia.App.Tests/Mia.App.Tests.csproj" />
+  </Folder>
+</Solution>
